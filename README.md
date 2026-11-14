@@ -9,7 +9,8 @@ Publication metadata comes from OpenAlex (CC0, so no on-site attribution is requ
 formatted citations from the DOI registration agencies (Crossref/DataCite). The platform
 never hosts or proxies PDFs; it links to publishers and open-access repositories.
 
-Features: Scholar-style search with time, sort, discipline and type filters; "Cited by"
+Features: researcher search and profiles (affiliation, ORCID, h-index, citations per year,
+publications), discipline rankings with a Canadian-institutions filter; Scholar-style search with time, sort, discipline and type filters; "Cited by"
 navigation; Cite in APA, MLA, Chicago, Harvard, IEEE and BibTeX; accounts with email
 confirmation; a personal library with collections.
 
@@ -20,7 +21,7 @@ confirmation; a personal library with collections.
 | 1 | App setup, design system, navigation, homepage | Done |
 | 2 | OpenAlex search, filters, sorting, pagination, publication details | Done, tested with live data |
 | 3 | Accounts, saved papers, collections, citations | Done |
-| 4 | Researcher profiles, responsive and accessibility pass, Vercel deployment | Not started |
+| 4 | Researcher profiles, responsive and accessibility pass, Vercel deployment | Done |
 
 ## Stack
 
@@ -48,6 +49,8 @@ api/                    Vercel functions (server-only code)
   works.ts              GET /api/works  (search, including cites=W… for "Cited by")
   work.ts               GET /api/work?id=W…  (single publication)
   cite.ts               GET /api/cite?doi=…&format=apa|mla|chicago|harvard|ieee|bibtex
+  authors.ts            GET /api/authors?q=…&discipline=…&canada=1 (search, or ranking by field output)
+  author.ts             GET /api/author?id=A…  (profile, metrics, citations per year)
 src/
   app/                  Router and page layout
   pages/                One file per page
@@ -60,6 +63,7 @@ src/
   types/                Shared TypeScript types
   styles/               Tailwind entry and design tokens
 tests/                  Unit tests
+brand/                  Official logo artwork and the script that traced it to SVG
 supabase/migrations/    Database changes, applied automatically on merge to main
 .github/workflows/      CI checks and automatic database migrations
 supabase/tests/         Row Level Security tests (run on a local PostgreSQL)

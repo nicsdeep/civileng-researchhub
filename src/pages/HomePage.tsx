@@ -15,7 +15,7 @@ export function HomePage() {
   usePageTitle()
   const [discipline, setDiscipline] = useState(DISCIPLINES[0].slug)
   const featured = useWorksSearch({
-    q: '', discipline, from: SINCE, to: '', type: 'article', oa: false, cites: '', sort: 'citations', page: 1,
+    q: '', discipline, from: SINCE, to: '', type: 'article', oa: false, cites: '', author: '', sort: 'citations', page: 1,
   })
 
   return (

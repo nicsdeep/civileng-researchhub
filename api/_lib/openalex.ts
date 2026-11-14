@@ -3,9 +3,9 @@
  * dev middleware); the API key never reaches the browser.
  * Docs: https://docs.openalex.org
  */
-import type { Work, WorkSearchParams, WorkSearchResult } from '../../src/types/research.js'
+import type { AuthorProfile, AuthorSearchParams, AuthorSearchResult, AuthorSummary, Work, WorkSearchParams, WorkSearchResult } from '../../src/types/research.js'
 import { findDiscipline } from '../../src/lib/disciplines.js'
-import { PER_PAGE } from '../../src/lib/searchParams.js'
+import { AUTHOR_PER_PAGE, AUTHOR_RANKING_PAGES, PER_PAGE } from '../../src/lib/searchParams.js'
 
 const BASE_URL = 'https://api.openalex.org'
 const TIMEOUT_MS = 10_000
@@ -91,6 +91,7 @@ export function buildWorksQuery(p: WorkSearchParams): URLSearchParams {
   if (p.q) query.set('search', clean(p.q))
   if (discipline) filters.push(discipline.filter)
   if (p.cites) filters.push(`cites:${p.cites}`)
+  if (p.author) filters.push(`authorships.author.id:${p.author}`)
   if (p.from) filters.push(`from_publication_date:${p.from}-01-01`)
   if (p.to) filters.push(`to_publication_date:${p.to}-12-31`)
   if (p.type) filters.push(`type:${p.type}`)
@@ -160,4 +161,99 @@ export function errorResponse(error: unknown): Response {
   if (error instanceof UpstreamError) return json({ error: error.message }, error.status)
   console.error(error)
   return json({ error: 'Something went wrong. Please try again.' }, 500)
+}
+
+// ---------------------------------------------------------------------------
+// Researchers
+// ---------------------------------------------------------------------------
+
+const AUTHOR_FIELDS = 'id,display_name,orcid,works_count,cited_by_count,summary_stats,last_known_institutions,topics'
+/** Broad civil engineering scope for rankings without a chosen discipline. */
+const CIVIL_SCOPE = 'primary_topic.subfield.id:2205|2215'
+const RANKING_YEARS = 5
+
+interface RawAuthor {
+  id: string
+  display_name: string | null
+  orcid: string | null
+  works_count: number | null
+  cited_by_count: number | null
+  summary_stats?: { h_index?: number; i10_index?: number } | null
+  last_known_institutions?: { display_name: string | null; country_code: string | null }[] | null
+  topics?: { display_name: string }[] | null
+  counts_by_year?: { year: number; works_count: number; cited_by_count: number }[] | null
+}
+
+export function toAuthor(raw: RawAuthor): AuthorSummary {
+  const institutions = (raw.last_known_institutions ?? []).filter((i) => i.display_name)
+  return {
+    id: shortId(raw.id) ?? raw.id,
+    name: raw.display_name?.trim() || 'Unknown researcher',
+    orcid: raw.orcid,
+    institutions: institutions.map((i) => i.display_name as string).slice(0, 3),
+    countryCode: institutions[0]?.country_code ?? null,
+    worksCount: raw.works_count ?? 0,
+    citedBy: raw.cited_by_count ?? 0,
+    hIndex: raw.summary_stats?.h_index ?? null,
+    i10Index: raw.summary_stats?.i10_index ?? null,
+    topics: (raw.topics ?? []).slice(0, 4).map((t) => t.display_name),
+  }
+}
+
+export async function searchAuthors(p: AuthorSearchParams): Promise<AuthorSearchResult> {
+  if (p.q) {
+    const query = new URLSearchParams({
+      search: clean(p.q),
+      page: String(p.page),
+      'per-page': String(AUTHOR_PER_PAGE),
+      select: AUTHOR_FIELDS,
+    })
+    if (p.canada) query.set('filter', 'last_known_institutions.country_code:CA')
+    const data = (await request('/authors', query)) as { meta: { count: number }; results: RawAuthor[] }
+    return { total: data.meta.count, page: p.page, perPage: AUTHOR_PER_PAGE, mode: 'search', results: data.results.map(toAuthor) }
+  }
+
+  // Rank researchers by how many papers they published in the discipline recently.
+  const page = Math.min(p.page, AUTHOR_RANKING_PAGES)
+  const since = new Date().getFullYear() - RANKING_YEARS
+  const discipline = findDiscipline(p.discipline)
+  const filters = ['is_retracted:false', `from_publication_date:${since}-01-01`, discipline?.filter ?? CIVIL_SCOPE]
+  if (p.canada) filters.push('authorships.institutions.country_code:ca')
+  const groups = (await request('/works', new URLSearchParams({
+    filter: filters.join(','),
+    group_by: 'authorships.author.id',
+    'per-page': String(AUTHOR_PER_PAGE * AUTHOR_RANKING_PAGES),
+  }))) as { group_by: { key: string; count: number }[] }
+
+  const ranked = groups.group_by.filter((g) => /A\d+$/.test(g.key))
+  const slice = ranked.slice((page - 1) * AUTHOR_PER_PAGE, page * AUTHOR_PER_PAGE)
+  if (slice.length === 0) return { total: ranked.length, page, perPage: AUTHOR_PER_PAGE, mode: 'ranking', since, results: [] }
+
+  const ids = slice.map((g) => shortId(g.key) as string)
+  const details = (await request('/authors', new URLSearchParams({
+    filter: `ids.openalex:${ids.join('|')}`,
+    'per-page': String(ids.length),
+    select: AUTHOR_FIELDS,
+  }))) as { results: RawAuthor[] }
+  const byId = new Map(details.results.map((a) => [shortId(a.id), toAuthor(a)]))
+  const results: AuthorSummary[] = []
+  for (const g of slice) {
+    const author = byId.get(shortId(g.key))
+    if (author) results.push({ ...author, disciplineWorks: g.count })
+  }
+  return { total: ranked.length, page, perPage: AUTHOR_PER_PAGE, mode: 'ranking', since, results }
+}
+
+export async function getAuthor(id: string): Promise<AuthorProfile> {
+  if (!/^A\d+$/.test(id)) throw new UpstreamError(400, 'Invalid researcher id.')
+  const raw = (await request(`/authors/${id}`, new URLSearchParams({ select: `${AUTHOR_FIELDS},counts_by_year` }))) as RawAuthor
+  const thisYear = new Date().getFullYear()
+  const counts = new Map((raw.counts_by_year ?? []).map((c) => [c.year, c]))
+  // Last 10 years, oldest first, with empty years filled in.
+  const byYear = Array.from({ length: 10 }, (_, i) => thisYear - 9 + i).map((year) => ({
+    year,
+    works: counts.get(year)?.works_count ?? 0,
+    citations: counts.get(year)?.cited_by_count ?? 0,
+  }))
+  return { ...toAuthor(raw), byYear }
 }

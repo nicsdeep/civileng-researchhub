@@ -13,6 +13,8 @@ function localApi(): Plugin {
     '/works': '/api/works.ts',
     '/work': '/api/work.ts',
     '/cite': '/api/cite.ts',
+    '/authors': '/api/authors.ts',
+    '/author': '/api/author.ts',
   }
   return {
     name: 'local-api',

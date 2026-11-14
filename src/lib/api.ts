@@ -1,5 +1,5 @@
-import type { Work, WorkSearchParams, WorkSearchResult } from '../types/research'
-import { toQueryString } from './searchParams'
+import type { AuthorProfile, AuthorSearchParams, AuthorSearchResult, Work, WorkSearchParams, WorkSearchResult } from '../types/research'
+import { toAuthorQueryString, toQueryString } from './searchParams'
 
 /** Error carrying a user-facing message from our /api endpoints. */
 export class ApiError extends Error {
@@ -31,4 +31,12 @@ export function searchWorks(params: WorkSearchParams, signal?: AbortSignal) {
 
 export function getWork(id: string, signal?: AbortSignal) {
   return getJson<Work>(`/api/work?id=${encodeURIComponent(id)}`, signal)
+}
+
+export function searchAuthors(params: AuthorSearchParams, signal?: AbortSignal) {
+  return getJson<AuthorSearchResult>(`/api/authors?${toAuthorQueryString(params)}`, signal)
+}
+
+export function getAuthor(id: string, signal?: AbortSignal) {
+  return getJson<AuthorProfile>(`/api/author?id=${encodeURIComponent(id)}`, signal)
 }

@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import type { Work } from '../../types/research'
-import { authorLine, formatCount, hostname, truncate } from '../../lib/format'
+import { formatCount, hostname, truncate } from '../../lib/format'
 import { toQueryString } from '../../lib/searchParams'
 import { SaveButton } from './SaveButton'
 import { CiteButton } from './CiteButton'
@@ -9,7 +9,8 @@ import { CiteButton } from './CiteButton'
 export function ResultItem({ work }: { work: Work }) {
   const source = [work.venue, work.year].filter(Boolean).join(', ')
   const site = hostname(work.landingUrl)
-  const byline = [authorLine(work), source, site].filter(Boolean).join(' - ')
+  const shownAuthors = work.authors.slice(0, 3)
+  const rest = [source, site].filter(Boolean).join(' - ')
   const fullText = work.isOpenAccess && work.openAccessUrl ? work.openAccessUrl : null
   const fullTextKind = fullText && /\.pdf($|\?)/i.test(fullText) ? 'PDF' : 'HTML'
 
@@ -21,7 +22,17 @@ export function ResultItem({ work }: { work: Work }) {
             {work.title}
           </Link>
         </h3>
-        <p className="mt-1 text-sm text-byline">{byline}</p>
+        <p className="mt-1 text-sm text-byline">
+          {shownAuthors.length === 0 && 'Unknown authors'}
+          {shownAuthors.map((a, i) => (
+            <span key={a.id ?? i}>
+              {i > 0 && ', '}
+              {a.id ? <Link to={`/researchers/${a.id}`} className="underline-offset-2 hover:underline">{a.name}</Link> : a.name}
+            </span>
+          ))}
+          {work.authorCount > shownAuthors.length && ', et al.'}
+          {rest && ` - ${rest}`}
+        </p>
         {work.abstract && <p className="mt-1.5 text-sm text-ink/85">{truncate(work.abstract, 280)}</p>}
         <div className="-ml-2 mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
           <SaveButton work={work} />

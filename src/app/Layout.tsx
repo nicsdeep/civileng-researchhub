@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, ScrollRestoration, useLocation, useSearchParams } from 'react-router'
-import { Logo } from '../components/ui/Logo'
+import { BrandMark, Logo } from '../components/ui/Logo'
 import { SearchBar } from '../components/research/SearchBar'
 import { useAuth } from '../features/auth/AuthProvider'
 
@@ -27,6 +27,23 @@ function AccountLink() {
     >
       {initial}
     </Link>
+  )
+}
+
+/** Phones: the avatar shows when signed in; "Sign in" lives in the menu. */
+function MobileAccount() {
+  const { user } = useAuth()
+  return user ? <AccountLink /> : null
+}
+
+function MobileMenuAccount({ navClass }: { navClass: (s: { isActive: boolean }) => string }) {
+  const { user } = useAuth()
+  if (user) return <NavLink to="/account" className={(s) => `${navClass(s)} py-2 text-base`}>Account</NavLink>
+  return (
+    <>
+      <NavLink to="/sign-in" className={(s) => `${navClass(s)} py-2 text-base`}>Sign in</NavLink>
+      <NavLink to="/sign-up" className={(s) => `${navClass(s)} py-2 text-base`}>Create account</NavLink>
+    </>
   )
 }
 
@@ -58,7 +75,7 @@ export function Layout() {
             <span className="ml-2"><AccountLink /></span>
           </nav>
           <div className="ml-auto flex items-center gap-2 sm:hidden">
-            <AccountLink />
+            <MobileAccount />
             <button
               type="button"
               className="btn-secondary h-9 px-3 py-0"
@@ -75,6 +92,7 @@ export function Layout() {
             {NAV.map((item) => (
               <NavLink key={item.to} to={item.to} className={(s) => `${navClass(s)} py-2 text-base`}>{item.label}</NavLink>
             ))}
+            <MobileMenuAccount navClass={navClass} />
           </nav>
         )}
       </header>
@@ -86,9 +104,9 @@ export function Layout() {
       <footer className="mt-20 border-t border-line bg-surface/60">
         <div className="container-page flex flex-col gap-4 py-8 text-sm sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3">
-            <img src="/favicon.svg" alt="" className="size-9" />
+            <BrandMark className="w-14" />
             <div>
-              <p className="display text-lg leading-tight">CivilEng <em className="text-brand-italic">ResearchHub</em></p>
+              <p className="display text-lg leading-tight"><span className="text-brand-navy">CivilEng</span> <em className="text-brand-italic">ResearchHub</em></p>
               <p className="text-muted">Edmund, Ontario</p>
             </div>
           </div>

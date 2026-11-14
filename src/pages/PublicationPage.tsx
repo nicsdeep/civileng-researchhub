@@ -68,7 +68,12 @@ export function PublicationPage() {
         {work.isOpenAccess && <p className="text-xs font-semibold tracking-wide text-oa uppercase">Free full text available</p>}
         <h1 className="display mt-1 text-3xl leading-tight sm:text-4xl">{work.title}</h1>
         <p className="mt-3 text-byline">
-          {work.authors.map((a) => a.name).join(', ')}
+          {work.authors.map((a, i) => (
+            <span key={a.id ?? i}>
+              {i > 0 && ', '}
+              {a.id ? <Link to={`/researchers/${a.id}`} className="underline-offset-2 hover:underline">{a.name}</Link> : a.name}
+            </span>
+          ))}
           {work.authorCount > work.authors.length && `, and ${work.authorCount - work.authors.length} more`}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-2">

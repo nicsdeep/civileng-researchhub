@@ -18,3 +18,18 @@ describe('passwordProblem', () => {
     expect(passwordProblem('bridge2026')).toBeNull()
   })
 })
+
+import { initials, niceMax } from '../src/lib/format'
+
+describe('display helpers', () => {
+  it('makes initials from names with hyphens and accents', () => {
+    expect(initials('Kok‐Kwang Phoon')).toBe('KP')
+    expect(initials('M. Hesham El Naggar')).toBe('MN')
+    expect(initials('Zhen-Yu Yin')).toBe('ZY')
+  })
+  it('rounds chart axes up to 1, 2 or 5 × 10ⁿ', () => {
+    expect(niceMax(2761)).toBe(5000)
+    expect(niceMax(180)).toBe(200)
+    expect(niceMax(0)).toBe(1)
+  })
+})

@@ -4,7 +4,8 @@ import { HomePage } from '../pages/HomePage'
 import { ExplorePage } from '../pages/ExplorePage'
 import { PublicationPage } from '../pages/PublicationPage'
 import { LibraryPage } from '../pages/LibraryPage'
-import { ComingSoonPage } from '../pages/ComingSoonPage'
+import { ResearchersPage } from '../pages/ResearchersPage'
+import { ResearcherPage } from '../pages/ResearcherPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { SignInPage } from '../pages/auth/SignInPage'
 import { SignUpPage } from '../pages/auth/SignUpPage'
@@ -24,14 +25,8 @@ export const router = createBrowserRouter([
       { path: '/sign-in', element: <SignInPage /> },
       { path: '/sign-up', element: <SignUpPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
-      {
-        path: '/researchers',
-        element: (
-          <ComingSoonPage title="Researchers">
-            Search for researchers and view their affiliations and publications. Coming in the next update.
-          </ComingSoonPage>
-        ),
-      },
+      { path: '/researchers', element: <ResearchersPage /> },
+      { path: '/researchers/:id', element: <ResearcherPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

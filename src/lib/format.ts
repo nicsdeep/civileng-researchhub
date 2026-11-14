@@ -34,3 +34,16 @@ export function hostname(url: string | null): string | null {
     return null
   }
 }
+
+/** "Kok-Kwang Phoon" → "KP". */
+export function initials(name: string): string {
+  const parts = name.replace(/[^\p{L}\s-]/gu, '').split(/[\s-]+/).filter(Boolean)
+  return ((parts[0]?.[0] ?? '') + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase() || '?'
+}
+
+/** "Nice" axis maximum: 1, 2 or 5 × a power of ten, at or above the data maximum. */
+export function niceMax(value: number): number {
+  if (value <= 0) return 1
+  const power = 10 ** Math.floor(Math.log10(value))
+  return ([1, 2, 5, 10].map((m) => m * power).find((v) => v >= value) ?? 10 * power)
+}

@@ -111,3 +111,42 @@ describe('GET /api/works', () => {
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer test-key')
   })
 })
+
+describe('researchers', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+  })
+
+  it('filters works by researcher', () => {
+    expect(buildWorksQuery(params('author=A5071268993')).get('filter')).toBe('is_retracted:false,authorships.author.id:A5071268993')
+  })
+
+  it('ranks researchers by discipline output, keeping the ranking order', async () => {
+    vi.stubEnv('OPENALEX_API_KEY', 'k')
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes('group_by')) {
+        return Response.json({ group_by: [{ key: 'https://openalex.org/A2', count: 40 }, { key: 'https://openalex.org/A1', count: 12 }, { key: 'unknown', count: 3 }] })
+      }
+      // Details come back in a different order than the ranking.
+      return Response.json({ results: [
+        { id: 'https://openalex.org/A1', display_name: 'Second', orcid: null, works_count: 5, cited_by_count: 9, last_known_institutions: [{ display_name: 'Queen’s University', country_code: 'CA' }] },
+        { id: 'https://openalex.org/A2', display_name: 'First', orcid: null, works_count: 50, cited_by_count: 900 },
+      ] })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { searchAuthors } = await import('../api/_lib/openalex')
+    const result = await searchAuthors({ q: '', discipline: 'geotechnical', canada: true, page: 1 })
+    expect(result.mode).toBe('ranking')
+    expect(result.results.map((a) => [a.name, a.disciplineWorks])).toEqual([['First', 40], ['Second', 12]])
+    expect(result.results[1].institutions).toEqual(['Queen’s University'])
+    const groupUrl = decodeURIComponent((fetchMock.mock.calls[0] as unknown as [string])[0])
+    expect(groupUrl).toContain('authorships.institutions.country_code:ca')
+    expect(groupUrl).toContain('primary_topic.id:T10233')
+  })
+
+  it('rejects malformed researcher ids', async () => {
+    const { GET } = await import('../api/author')
+    expect((await GET(new Request('http://x/api/author?id=../../etc'))).status).toBe(400)
+  })
+})

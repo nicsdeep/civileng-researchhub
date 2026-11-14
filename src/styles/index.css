@@ -15,7 +15,9 @@
   --accent: #0e6b63;
   --accent-hover: #0a524c;
   --accent-soft: #dcefec;
-  --brand-italic: #45aea3;
+  --brand-navy: #072c58;
+  --brand-italic: #039694;
+  --chart: #039694;
   --action: #ff4f0a;
   --action-hover: #e54400;
   --action-ink: #ffffff;
@@ -36,7 +38,9 @@
     --accent: #6fd0c5;
     --accent-hover: #9ae0d8;
     --accent-soft: #1b3330;
-    --brand-italic: #6fd0c5;
+    --brand-navy: #e3ebf5;
+    --brand-italic: #4fc3bd;
+    --chart: #2ea39e;
     --action: #ff6a2b;
     --action-hover: #ff8550;
     --action-ink: #1a0b03;
@@ -57,7 +61,9 @@
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
+  --color-brand-navy: var(--brand-navy);
   --color-brand-italic: var(--brand-italic);
+  --color-chart: var(--chart);
   --color-action: var(--action);
   --color-action-hover: var(--action-hover);
   --color-action-ink: var(--action-ink);
@@ -124,6 +130,15 @@
 }
 @utility field {
   @apply w-full rounded-xl border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-accent focus:outline-none;
+}
+/* The official mark keeps its navy and teal; in dark mode it sits on a white tile. */
+@utility brand-mark {
+  @apply shrink-0;
+  @media (prefers-color-scheme: dark) {
+    background: #ffffff;
+    border-radius: 0.6rem;
+    padding: 0.2rem 0.3rem;
+  }
 }
 @utility label {
   @apply mb-1 block text-xs font-semibold tracking-[0.08em] text-muted uppercase;

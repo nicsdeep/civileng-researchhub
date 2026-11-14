@@ -45,6 +45,46 @@ export interface WorkSearchParams {
   oa: boolean
   /** Show works that cite this OpenAlex work id ("Cited by"). */
   cites: string
+  /** Show works by this OpenAlex author id. */
+  author: string
   sort: SortOption
+  page: number
+}
+
+export interface AuthorSummary {
+  /** OpenAlex short id, e.g. "A5071268993". */
+  id: string
+  name: string
+  orcid: string | null
+  institutions: string[]
+  countryCode: string | null
+  worksCount: number
+  citedBy: number
+  hIndex: number | null
+  i10Index: number | null
+  topics: string[]
+  /** Papers in the selected discipline (discipline rankings only). */
+  disciplineWorks?: number
+}
+
+export interface AuthorProfile extends AuthorSummary {
+  /** Most recent years first are trimmed; ascending by year. */
+  byYear: { year: number; works: number; citations: number }[]
+}
+
+export interface AuthorSearchResult {
+  total: number
+  page: number
+  perPage: number
+  mode: 'search' | 'ranking'
+  /** Ranking window start year, for "since …" labels. */
+  since?: number
+  results: AuthorSummary[]
+}
+
+export interface AuthorSearchParams {
+  q: string
+  discipline: string
+  canada: boolean
   page: number
 }

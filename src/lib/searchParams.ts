@@ -1,4 +1,4 @@
-import type { SortOption, WorkSearchParams } from '../types/research.js'
+import type { AuthorSearchParams, SortOption, WorkSearchParams } from '../types/research.js'
 
 export const PER_PAGE = 20
 /** OpenAlex basic paging stops at 10,000 results. */
@@ -34,6 +34,7 @@ export function parseSearchParams(params: URLSearchParams): WorkSearchParams {
     type: PUBLICATION_TYPES.some((t) => t.value === type) ? type : '',
     oa: params.get('oa') === '1',
     cites: /^W\d+$/.test(params.get('cites') ?? '') ? params.get('cites')! : '',
+    author: /^A\d+$/.test(params.get('author') ?? '') ? params.get('author')! : '',
     sort: SORTS.includes(sort) ? sort : 'relevance',
     page: Number.isFinite(page) ? Math.min(Math.max(page, 1), MAX_PAGE) : 1,
   }
@@ -49,7 +50,31 @@ export function toQueryString(p: Partial<WorkSearchParams>): string {
   if (p.type) out.set('type', p.type)
   if (p.oa) out.set('oa', '1')
   if (p.cites) out.set('cites', p.cites)
+  if (p.author) out.set('author', p.author)
   if (p.sort && p.sort !== 'relevance') out.set('sort', p.sort)
+  if (p.page && p.page > 1) out.set('page', String(p.page))
+  return out.toString()
+}
+
+export const AUTHOR_PER_PAGE = 20
+/** Discipline rankings list the top 100 researchers. */
+export const AUTHOR_RANKING_PAGES = 5
+
+export function parseAuthorParams(params: URLSearchParams): AuthorSearchParams {
+  const page = Number.parseInt(params.get('page') ?? '1', 10)
+  return {
+    q: (params.get('q') ?? '').trim().slice(0, 200),
+    discipline: params.get('discipline') ?? '',
+    canada: params.get('canada') === '1',
+    page: Number.isFinite(page) ? Math.min(Math.max(page, 1), 50) : 1,
+  }
+}
+
+export function toAuthorQueryString(p: Partial<AuthorSearchParams>): string {
+  const out = new URLSearchParams()
+  if (p.q) out.set('q', p.q)
+  if (p.discipline) out.set('discipline', p.discipline)
+  if (p.canada) out.set('canada', '1')
   if (p.page && p.page > 1) out.set('page', String(p.page))
   return out.toString()
 }
