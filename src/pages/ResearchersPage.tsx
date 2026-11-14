@@ -79,7 +79,11 @@ export function ResearchersPage() {
       <section aria-label="Researchers" className="mt-6">
         <div className="border-b border-line pb-3">
           <h2 className="text-sm font-semibold" aria-live="polite">{heading}</h2>
-          {!params.q && <p className="text-xs text-muted">Ranked by number of papers published in the field.</p>}
+          {!params.q && (
+            <p className="text-xs text-muted">
+              Ranked by number of papers published in the field{params.canada ? ' at Canadian institutions. Affiliations shown are current, so some researchers have since moved' : ''}.
+            </p>
+          )}
         </div>
 
         {results.isPending ? (
