@@ -14,7 +14,7 @@ hosts or proxies PDFs; it links to publishers and open-access repositories.
 |---|---|---|
 | 1 | App setup, design system, navigation, homepage | Done |
 | 2 | OpenAlex search, filters, sorting, pagination, publication details | Done, tested with live data |
-| 3 | Supabase accounts, saved papers, collections | Database schema and security ready; app screens not started |
+| 3 | Supabase accounts, saved papers, collections | Database tables, security and automatic migrations ready; app screens not started |
 | 4 | Researcher profiles, responsive and accessibility pass, Vercel deployment | Not started |
 
 ## Stack
@@ -52,7 +52,8 @@ src/
   types/                Shared TypeScript types
   styles/               Tailwind entry and design tokens
 tests/                  Unit tests
-supabase/migrations/    Database changes, applied in filename order
+supabase/migrations/    Database changes, applied automatically on merge to main
+.github/workflows/      CI checks and automatic database migrations
 supabase/tests/         Row Level Security tests (run on a local PostgreSQL)
 ```
 
@@ -89,30 +90,38 @@ Never put the Supabase service-role key or the database password in this project
 
 ## Database (Supabase)
 
-The Supabase project is shared with a future CivilEng Digital CV Portfolio, so each app
-gets its own schema. ResearchHub uses `researchhub`:
+The Supabase project is shared with a future CivilEng Digital CV Portfolio. Every
+ResearchHub table is prefixed `rh_` (the portfolio can use `pf_`), and both apps share
+Supabase Auth, so one account works on both.
 
 | Table | Purpose |
 |---|---|
-| `saved_works` | Publications a user saved: OpenAlex id plus a small snapshot (title, authors, venue, year, DOI) and a private note |
-| `collections` | Named folders created by a user |
-| `collection_items` | Which saved publications are in which collection |
+| `rh_saved_works` | Publications a user saved: OpenAlex id plus a small snapshot (title, authors, venue, year, DOI) and a private note |
+| `rh_collections` | Named folders created by a user |
+| `rh_collection_items` | Which saved publications are in which collection |
 
-Security: only signed-in users can access the schema; anonymous visitors are denied.
+Security: only signed-in users can access these tables; anonymous visitors are denied.
 Row Level Security on every table limits each user to their own rows, and `user_id` is
 set automatically from the login session. Publications themselves are never stored.
 
-### Applying the migration (one time)
+### Migrations run automatically
 
-1. Supabase dashboard → SQL Editor → New query.
-2. Paste the contents of `supabase/migrations/20261114120000_researchhub_library.sql` and click Run.
-3. Project Settings → Data API → Exposed schemas: add `researchhub`, then save.
+`.github/workflows/supabase-migrations.yml` applies any new file in `supabase/migrations/`
+to Supabase when it reaches `main`. Already-applied migrations are skipped. It needs two
+repository secrets (Settings → Secrets and variables → Actions):
 
-### Testing the security rules locally
+| Secret | Where to get it |
+|---|---|
+| `SUPABASE_ACCESS_TOKEN` | https://supabase.com/dashboard/account/tokens → Generate new token |
+| `SUPABASE_DB_PASSWORD` | Supabase → Project Settings → Database (reset it if unknown) |
 
-With PostgreSQL installed: `PGHOST=localhost PGUSER=postgres supabase/tests/run-rls-tests.sh`.
-It creates a throwaway database, simulates two users and an anonymous visitor, and shows
-that nobody can read or change another user's data.
+To run it by hand: GitHub → Actions → Supabase migrations → Run workflow.
+
+### Testing the security rules
+
+CI runs `supabase/tests/run-rls-tests.sh` against PostgreSQL on every push. It simulates
+two users and an anonymous visitor and fails if anyone can read or change another user's
+data. Locally: `PGHOST=localhost PGUSER=postgres supabase/tests/run-rls-tests.sh`.
 
 ## Deployment (Vercel)
 
