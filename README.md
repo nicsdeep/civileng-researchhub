@@ -59,7 +59,7 @@ supabase/tests/         Row Level Security tests (run on a local PostgreSQL)
 
 ## Getting started
 
-Requirements: Node.js 20 or newer.
+Requirements: Node.js 22.
 
 ```bash
 npm install

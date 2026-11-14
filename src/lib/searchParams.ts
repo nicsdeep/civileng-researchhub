@@ -1,4 +1,4 @@
-import type { SortOption, WorkSearchParams } from '../types/research'
+import type { SortOption, WorkSearchParams } from '../types/research.js'
 
 export const PER_PAGE = 20
 /** OpenAlex basic paging stops at 10,000 results. */
