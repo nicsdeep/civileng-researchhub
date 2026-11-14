@@ -52,9 +52,9 @@ jobs:
       - name: Apply new migrations
         run: |
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
-          supabase db push
+          supabase db push --linked
 
       - name: Show migration status
         run: |
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
-          supabase migration list
+          supabase migration list --linked

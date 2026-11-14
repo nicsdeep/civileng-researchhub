@@ -14,7 +14,7 @@ hosts or proxies PDFs; it links to publishers and open-access repositories.
 |---|---|---|
 | 1 | App setup, design system, navigation, homepage | Done |
 | 2 | OpenAlex search, filters, sorting, pagination, publication details | Done, tested with live data |
-| 3 | Supabase accounts, saved papers, collections | Database tables, security and automatic migrations ready; app screens not started |
+| 3 | Supabase accounts, saved papers, collections | Database tables live with security rules; app screens not started |
 | 4 | Researcher profiles, responsive and accessibility pass, Vercel deployment | Not started |
 
 ## Stack
@@ -107,13 +107,13 @@ set automatically from the login session. Publications themselves are never stor
 ### Migrations run automatically
 
 `.github/workflows/supabase-migrations.yml` applies any new file in `supabase/migrations/`
-to Supabase when it reaches `main`. Already-applied migrations are skipped. It needs two
+to Supabase when it reaches `main`. Already-applied migrations are skipped. It uses these
 repository secrets (Settings → Secrets and variables → Actions):
 
 | Secret | Where to get it |
 |---|---|
 | `SUPABASE_ACCESS_TOKEN` | https://supabase.com/dashboard/account/tokens → Generate new token |
-| `SUPABASE_DB_PASSWORD` | Supabase → Project Settings → Database (reset it if unknown) |
+| `SUPABASE_DB_PASSWORD` | Optional. Without it the CLI uses a temporary login role |
 
 To run it by hand: GitHub → Actions → Supabase migrations → Run workflow.
 
