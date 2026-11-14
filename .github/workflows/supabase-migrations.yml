@@ -5,7 +5,7 @@
 #
 # Needs two repository secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_ACCESS_TOKEN  personal token from https://supabase.com/dashboard/account/tokens
-#   SUPABASE_DB_PASSWORD   the project's database password
+#   SUPABASE_DB_PASSWORD   optional: the database password (otherwise a temporary login role is used)
 name: Supabase migrations
 
 on:
@@ -31,22 +31,30 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Check that the secrets are set
+      - name: Check that the access token is set
         run: |
-          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_DB_PASSWORD" ]; then
-            echo "::error::Add SUPABASE_ACCESS_TOKEN and SUPABASE_DB_PASSWORD under Settings → Secrets and variables → Actions, then re-run this workflow."
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Add SUPABASE_ACCESS_TOKEN under Settings → Secrets and variables → Actions, then re-run this workflow."
             exit 1
           fi
+          # Without SUPABASE_DB_PASSWORD the CLI connects with a short-lived login role.
+          if [ -z "$SUPABASE_DB_PASSWORD" ]; then echo "::notice::SUPABASE_DB_PASSWORD not set; using a temporary login role."; fi
 
       - uses: supabase/setup-cli@v1
         with:
           version: 2.122.1
 
       - name: Link the Supabase project
-        run: supabase link --project-ref "$PROJECT_REF"
+        run: |
+          [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
+          supabase link --project-ref "$PROJECT_REF"
 
       - name: Apply new migrations
-        run: supabase db push
+        run: |
+          [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
+          supabase db push
 
       - name: Show migration status
-        run: supabase migration list
+        run: |
+          [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
+          supabase migration list
