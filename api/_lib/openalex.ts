@@ -84,19 +84,17 @@ const clean = (text: string) => text.replace(/[,|]/g, ' ').trim()
 /** Translates our search parameters into an OpenAlex /works query string. */
 export function buildWorksQuery(p: WorkSearchParams): URLSearchParams {
   const query = new URLSearchParams()
-  const filters: string[] = []
+  // Retracted papers are never shown.
+  const filters: string[] = ['is_retracted:false']
   const discipline = findDiscipline(p.discipline)
 
   if (p.q) query.set('search', clean(p.q))
-  if (discipline) {
-    if (p.q) filters.push(`title_and_abstract.search:${discipline.terms}`)
-    else query.set('search', discipline.terms)
-  }
+  if (discipline) filters.push(discipline.filter)
   if (p.from) filters.push(`from_publication_date:${p.from}-01-01`)
   if (p.to) filters.push(`to_publication_date:${p.to}-12-31`)
   if (p.type) filters.push(`type:${p.type}`)
   if (p.oa) filters.push('is_oa:true')
-  if (filters.length) query.set('filter', filters.join(','))
+  query.set('filter', filters.join(','))
 
   // Relevance only means something for a typed query; browsing defaults to most cited.
   const sort =

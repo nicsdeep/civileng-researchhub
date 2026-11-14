@@ -19,21 +19,27 @@ describe('buildWorksQuery', () => {
   it('builds search, filters and relevance sort', () => {
     const q = buildWorksQuery(params('q=slope stability&from=2010&to=2020&type=article&oa=1'))
     expect(q.get('search')).toBe('slope stability')
-    expect(q.get('filter')).toBe('from_publication_date:2010-01-01,to_publication_date:2020-12-31,type:article,is_oa:true')
+    expect(q.get('filter')).toBe('is_retracted:false,from_publication_date:2010-01-01,to_publication_date:2020-12-31,type:article,is_oa:true')
     expect(q.get('sort')).toBe('relevance_score:desc')
     expect(q.get('per-page')).toBe('20')
   })
 
-  it('uses discipline terms as the search when there is no query', () => {
+  it('browses a discipline by its filter, most cited first', () => {
     const q = buildWorksQuery(params('discipline=geotechnical'))
-    expect(q.get('search')).toBe('geotechnical')
+    expect(q.has('search')).toBe(false)
+    expect(q.get('filter')).toBe('is_retracted:false,primary_topic.id:T10233|T11375|T11046|T13941')
     expect(q.get('sort')).toBe('cited_by_count:desc')
   })
 
-  it('narrows a query by discipline through a title/abstract filter', () => {
+  it('combines a query with a discipline filter', () => {
     const q = buildWorksQuery(params('q=fatigue&discipline=structural'))
     expect(q.get('search')).toBe('fatigue')
-    expect(q.get('filter')).toBe('title_and_abstract.search:structural engineering')
+    expect(q.get('filter')).toContain('primary_topic.subfield.id:2205')
+    expect(q.get('sort')).toBe('relevance_score:desc')
+  })
+
+  it('ignores unknown disciplines', () => {
+    expect(buildWorksQuery(params('discipline=astrology')).get('filter')).toBe('is_retracted:false')
   })
 
   it('strips characters that would break the filter syntax', () => {

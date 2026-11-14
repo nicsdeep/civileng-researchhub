@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { SearchBar } from '../components/research/SearchBar'
 import { SearchFilters } from '../components/research/SearchFilters'
@@ -13,6 +14,7 @@ import type { SortOption, WorkSearchParams } from '../types/research'
 
 export function ExplorePage() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const params = parseSearchParams(searchParams)
   const hasQuery = Boolean(params.q || params.discipline)
   const results = useWorksSearch(params, hasQuery)
@@ -34,13 +36,17 @@ export function ExplorePage() {
 
       <div className="mt-6 grid gap-8 md:grid-cols-[14rem_1fr]">
         <aside aria-label="Filters">
-          <details className="md:hidden" open={false}>
-            <summary className="btn-secondary w-full cursor-pointer list-none">Filters</summary>
-            <div className="pt-4">
-              <SearchFilters params={params} onChange={update} />
-            </div>
-          </details>
-          <div className="hidden md:block">
+          {/* One set of filters: collapsible on phones, always visible on wider screens. */}
+          <button
+            type="button"
+            className="btn-secondary w-full md:hidden"
+            aria-expanded={filtersOpen}
+            aria-controls="filters"
+            onClick={() => setFiltersOpen((open) => !open)}
+          >
+            {filtersOpen ? 'Hide filters' : 'Filters'}
+          </button>
+          <div id="filters" className={`${filtersOpen ? 'block pt-4' : 'hidden'} md:block md:pt-0`}>
             <SearchFilters params={params} onChange={update} />
           </div>
         </aside>
