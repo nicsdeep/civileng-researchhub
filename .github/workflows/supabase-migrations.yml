@@ -56,6 +56,9 @@ jobs:
           supabase db push --linked
 
       - name: Apply auth settings (site URL, password rules, email confirmation)
+        # The diff printed above is the change being approved; config.toml is reviewed in Git.
+        env:
+          SUPABASE_YES: "1"
         run: |
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
           supabase config push --project-ref "$PROJECT_REF"
