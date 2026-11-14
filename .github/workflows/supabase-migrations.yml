@@ -1,5 +1,6 @@
-# Applies new database migrations (supabase/migrations/*.sql) to the Supabase
-# project whenever they reach the main branch. Already-applied migrations are
+# Applies new database migrations (supabase/migrations/*.sql) and the auth
+# settings in supabase/config.toml to the Supabase project whenever they
+# reach the main branch. Already-applied migrations are
 # skipped, so it is safe to run again. Can also be started by hand from the
 # GitHub Actions tab ("Run workflow").
 #
@@ -11,7 +12,7 @@ name: Supabase migrations
 on:
   push:
     branches: [main]
-    paths: ['supabase/migrations/**']
+    paths: ['supabase/migrations/**', 'supabase/config.toml']
   workflow_dispatch:
 
 concurrency:
@@ -53,6 +54,11 @@ jobs:
         run: |
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
           supabase db push --linked
+
+      - name: Apply auth settings (site URL, password rules, email confirmation)
+        run: |
+          [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
+          supabase config push --project-ref "$PROJECT_REF"
 
       - name: Show migration status
         run: |

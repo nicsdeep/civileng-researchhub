@@ -5,8 +5,13 @@ coursework project in Ontario, Canada. Search real publications across structura
 geotechnical, transportation, environmental, water resources, construction and materials
 engineering, with abstracts, citation counts, DOIs and links to legitimate full texts.
 
-Publication data comes from [OpenAlex](https://openalex.org) (CC0). The platform never
-hosts or proxies PDFs; it links to publishers and open-access repositories.
+Publication metadata comes from OpenAlex (CC0, so no on-site attribution is required) and
+formatted citations from the DOI registration agencies (Crossref/DataCite). The platform
+never hosts or proxies PDFs; it links to publishers and open-access repositories.
+
+Features: Scholar-style search with time, sort, discipline and type filters; "Cited by"
+navigation; Cite in APA, MLA, Chicago, Harvard, IEEE and BibTeX; accounts with email
+confirmation; a personal library with collections.
 
 ## Status
 
@@ -14,7 +19,7 @@ hosts or proxies PDFs; it links to publishers and open-access repositories.
 |---|---|---|
 | 1 | App setup, design system, navigation, homepage | Done |
 | 2 | OpenAlex search, filters, sorting, pagination, publication details | Done, tested with live data |
-| 3 | Supabase accounts, saved papers, collections | Database tables live with security rules; app screens not started |
+| 3 | Accounts, saved papers, collections, citations | Done |
 | 4 | Researcher profiles, responsive and accessibility pass, Vercel deployment | Not started |
 
 ## Stack
@@ -40,14 +45,17 @@ Browser (React app)
 ```
 api/                    Vercel functions (server-only code)
   _lib/openalex.ts      OpenAlex client: query building, field mapping, error handling
-  works.ts              GET /api/works  (search)
+  works.ts              GET /api/works  (search, including cites=W… for "Cited by")
   work.ts               GET /api/work?id=W…  (single publication)
+  cite.ts               GET /api/cite?doi=…&format=apa|mla|chicago|harvard|ieee|bibtex
 src/
   app/                  Router and page layout
   pages/                One file per page
   components/ui/        Generic UI (status messages, skeletons)
   components/research/  Search bar, filters, result items, pagination
-  features/search/      Data hooks
+  features/search/      Search data hooks
+  features/auth/        Session state, route guard, form validation
+  features/library/     Saved papers and collections (Supabase)
   lib/                  API client, search parameters, disciplines, formatting
   types/                Shared TypeScript types
   styles/               Tailwind entry and design tokens
@@ -103,6 +111,12 @@ Supabase Auth, so one account works on both.
 Security: only signed-in users can access these tables; anonymous visitors are denied.
 Row Level Security on every table limits each user to their own rows, and `user_id` is
 set automatically from the login session. Publications themselves are never stored.
+
+### Auth settings
+
+`supabase/config.toml` sets the site URL (so confirmation and reset emails link to the live
+site), password rules (8+ characters, letters and digits) and email confirmation. The
+workflow below applies it with `supabase config push`.
 
 ### Migrations run automatically
 

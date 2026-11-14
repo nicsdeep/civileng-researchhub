@@ -38,6 +38,12 @@ describe('buildWorksQuery', () => {
     expect(q.get('sort')).toBe('relevance_score:desc')
   })
 
+  it('finds works that cite a given work', () => {
+    const q = buildWorksQuery(params('cites=W2061655501'))
+    expect(q.get('filter')).toBe('is_retracted:false,cites:W2061655501')
+    expect(q.get('sort')).toBe('cited_by_count:desc')
+  })
+
   it('ignores unknown disciplines', () => {
     expect(buildWorksQuery(params('discipline=astrology')).get('filter')).toBe('is_retracted:false')
   })

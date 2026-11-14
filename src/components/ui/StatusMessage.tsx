@@ -11,7 +11,7 @@ interface Props {
 export function StatusMessage({ title, children, tone = 'neutral', action }: Props) {
   return (
     <div role={tone === 'error' ? 'alert' : 'status'} className="border-y border-line py-10 text-center">
-      <p className={`font-serif text-lg ${tone === 'error' ? 'text-danger' : 'text-ink'}`}>{title}</p>
+      <p className={`display text-2xl ${tone === 'error' ? 'text-danger' : 'text-ink'}`}>{title}</p>
       {children && <div className="mx-auto mt-2 max-w-md text-sm text-muted">{children}</div>}
       {action && <div className="mt-4">{action}</div>}
     </div>

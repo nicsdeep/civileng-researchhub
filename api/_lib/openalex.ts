@@ -1,5 +1,5 @@
 /**
- * Server-only OpenAlex client. Runs inside Vercel functions (and the local
+ * Server-only client for the publication metadata source (OpenAlex). Runs inside Vercel functions (and the local
  * dev middleware); the API key never reaches the browser.
  * Docs: https://docs.openalex.org
  */
@@ -90,6 +90,7 @@ export function buildWorksQuery(p: WorkSearchParams): URLSearchParams {
 
   if (p.q) query.set('search', clean(p.q))
   if (discipline) filters.push(discipline.filter)
+  if (p.cites) filters.push(`cites:${p.cites}`)
   if (p.from) filters.push(`from_publication_date:${p.from}-01-01`)
   if (p.to) filters.push(`to_publication_date:${p.to}-12-31`)
   if (p.type) filters.push(`type:${p.type}`)

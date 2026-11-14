@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#1f3a68"/><path d="M6 22h20M8 22V13l8-5 8 5v9M12 22v-6M16 22v-6M20 22v-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 64 64">
+  <title>CivilEng ResearchHub, Edmund, Ontario</title>
+  <!-- White trillium, the floral emblem of Ontario -->
+  <rect width="64" height="64" rx="15" fill="#0e6b63"/>
+  <g transform="translate(32 35)">
+    <path id="petal" d="M0 -3 C 10 -9 11 -24 0 -28 C -11 -24 -10 -9 0 -3 Z" fill="#ffffff"/>
+    <use xlink:href="#petal" href="#petal" transform="rotate(120)"/>
+    <use xlink:href="#petal" href="#petal" transform="rotate(240)"/>
+    <path d="M0 -3 L0 -22" stroke="#b9e3dd" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M0 -3 L0 -22" stroke="#b9e3dd" stroke-width="1.6" stroke-linecap="round" transform="rotate(120)"/>
+    <path d="M0 -3 L0 -22" stroke="#b9e3dd" stroke-width="1.6" stroke-linecap="round" transform="rotate(240)"/>
+    <circle r="4.5" fill="#ff5a14"/>
+  </g>
+</svg>

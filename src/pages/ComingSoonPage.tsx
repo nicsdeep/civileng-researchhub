@@ -6,7 +6,7 @@ export function ComingSoonPage({ title, children }: { title: string; children: R
   usePageTitle(title)
   return (
     <div className="container-page py-12">
-      <h1 className="font-serif text-3xl">{title}</h1>
+      <h1 className="display text-5xl">{title}</h1>
       <p className="mt-3 max-w-prose text-muted">{children}</p>
       <Link to="/explore" className="btn-primary mt-6">
         Explore research

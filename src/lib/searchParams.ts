@@ -33,6 +33,7 @@ export function parseSearchParams(params: URLSearchParams): WorkSearchParams {
     to: year('to'),
     type: PUBLICATION_TYPES.some((t) => t.value === type) ? type : '',
     oa: params.get('oa') === '1',
+    cites: /^W\d+$/.test(params.get('cites') ?? '') ? params.get('cites')! : '',
     sort: SORTS.includes(sort) ? sort : 'relevance',
     page: Number.isFinite(page) ? Math.min(Math.max(page, 1), MAX_PAGE) : 1,
   }
@@ -47,6 +48,7 @@ export function toQueryString(p: Partial<WorkSearchParams>): string {
   if (p.to) out.set('to', p.to)
   if (p.type) out.set('type', p.type)
   if (p.oa) out.set('oa', '1')
+  if (p.cites) out.set('cites', p.cites)
   if (p.sort && p.sort !== 'relevance') out.set('sort', p.sort)
   if (p.page && p.page > 1) out.set('page', String(p.page))
   return out.toString()

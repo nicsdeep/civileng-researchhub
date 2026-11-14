@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, ScrollRestoration, useLocation } from 'react-router'
+import { Link, NavLink, Outlet, ScrollRestoration, useLocation, useSearchParams } from 'react-router'
+import { Logo } from '../components/ui/Logo'
+import { SearchBar } from '../components/research/SearchBar'
+import { useAuth } from '../features/auth/AuthProvider'
 
 const NAV = [
   { to: '/explore', label: 'Explore' },
@@ -8,54 +11,69 @@ const NAV = [
 ]
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
-  `text-sm ${isActive ? 'font-medium text-ink' : 'text-muted hover:text-ink'}`
+  `rounded-full px-3 py-1.5 text-sm transition-colors ${isActive ? 'bg-accent-soft font-semibold text-accent' : 'text-muted hover:text-ink'}`
+
+function AccountLink() {
+  const { user, loading } = useAuth()
+  if (loading) return <span className="size-9" aria-hidden="true" />
+  if (!user) return <NavLink to="/sign-in" className="btn-secondary h-9 py-0">Sign in</NavLink>
+  const initial = (user.email ?? '?').charAt(0).toUpperCase()
+  return (
+    <Link
+      to="/account"
+      title={`Account: ${user.email}`}
+      aria-label="Your account"
+      className="grid size-9 place-items-center rounded-full bg-accent-soft text-sm font-semibold text-accent hover:ring-2 hover:ring-accent/30"
+    >
+      {initial}
+    </Link>
+  )
+}
 
 export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
+  const [params] = useSearchParams()
+  const isHome = location.pathname === '/'
   useEffect(() => setMenuOpen(false), [location.pathname])
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-bg focus:px-3 focus:py-2">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>
 
-      <header className="border-b border-line">
-        <div className="container-page flex h-14 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 font-serif text-lg font-semibold text-ink">
-            <img src="/favicon.svg" alt="" className="size-6" />
-            CivilEng <span className="font-normal text-muted">ResearchHub</span>
-          </Link>
-
-          <nav aria-label="Main" className="hidden items-center gap-6 sm:flex">
+      <header className={isHome ? '' : 'border-b border-line bg-surface/80 backdrop-blur'}>
+        <div className="container-page flex h-16 items-center gap-4">
+          {!isHome && <div className="shrink-0"><Logo /></div>}
+          {!isHome && location.pathname.startsWith('/explore') && (
+            <div className="hidden max-w-xl flex-1 md:block">
+              <SearchBar key={params.get('q') ?? ''} initialQuery={params.get('q') ?? ''} />
+            </div>
+          )}
+          <nav aria-label="Main" className="ml-auto hidden items-center gap-1 sm:flex">
             {NAV.map((item) => (
-              <NavLink key={item.to} to={item.to} className={navClass}>
-                {item.label}
-              </NavLink>
+              <NavLink key={item.to} to={item.to} className={navClass}>{item.label}</NavLink>
             ))}
-            <NavLink to="/sign-in" className="btn-secondary h-9 py-0">
-              Sign in
-            </NavLink>
+            <span className="ml-2"><AccountLink /></span>
           </nav>
-
-          <button
-            type="button"
-            className="btn-secondary h-9 px-3 py-0 sm:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? 'Close' : 'Menu'}
-          </button>
+          <div className="ml-auto flex items-center gap-2 sm:hidden">
+            <AccountLink />
+            <button
+              type="button"
+              className="btn-secondary h-9 px-3 py-0"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? 'Close' : 'Menu'}
+            </button>
+          </div>
         </div>
-
         {menuOpen && (
-          <nav id="mobile-nav" aria-label="Main" className="container-page flex flex-col gap-1 border-t border-line pb-3 sm:hidden">
-            {[...NAV, { to: '/sign-in', label: 'Sign in' }].map((item) => (
-              <NavLink key={item.to} to={item.to} className={(s) => `${navClass(s)} py-2 text-base`}>
-                {item.label}
-              </NavLink>
+          <nav id="mobile-nav" aria-label="Main" className="container-page flex flex-col gap-1 border-t border-line bg-surface pb-3 sm:hidden">
+            {NAV.map((item) => (
+              <NavLink key={item.to} to={item.to} className={(s) => `${navClass(s)} py-2 text-base`}>{item.label}</NavLink>
             ))}
           </nav>
         )}
@@ -65,16 +83,19 @@ export function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mt-16 border-t border-line">
-        <div className="container-page flex flex-col gap-2 py-6 text-xs text-muted sm:flex-row sm:justify-between">
-          <p>
-            Publication data from{' '}
-            <a href="https://openalex.org" target="_blank" rel="noopener noreferrer" className="link">
-              OpenAlex
-            </a>{' '}
-            (CC0). Full texts link to their original publishers and repositories.
-          </p>
-          <p>CivilEng ResearchHub · Civil Engineering coursework project, Ontario</p>
+      <footer className="mt-20 border-t border-line bg-surface/60">
+        <div className="container-page flex flex-col gap-4 py-8 text-sm sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <img src="/favicon.svg" alt="" className="size-9" />
+            <div>
+              <p className="display text-lg leading-tight">CivilEng <em className="text-brand-italic">ResearchHub</em></p>
+              <p className="text-muted">Edmund, Ontario</p>
+            </div>
+          </div>
+          <div className="max-w-md text-xs text-muted sm:text-right">
+            <p>Civil engineering research discovery for students, lecturers and engineers.</p>
+            <p className="mt-1">Publication metadata is openly licensed. Full texts link to their publishers and repositories.</p>
+          </div>
         </div>
       </footer>
       <ScrollRestoration />

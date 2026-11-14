@@ -23,3 +23,14 @@ export function truncate(text: string, max: number): string {
   if (text.length <= max) return text
   return `${text.slice(0, text.lastIndexOf(' ', max)).replace(/[\s.,;:]+$/, '')}…`
 }
+
+/** "www.sciencedirect.com" → "sciencedirect.com"; null when not a URL or only a DOI resolver. */
+export function hostname(url: string | null): string | null {
+  if (!url) return null
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, '')
+    return /(^|\.)doi\.org$/.test(host) ? null : host
+  } catch {
+    return null
+  }
+}

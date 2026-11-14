@@ -12,6 +12,7 @@ function localApi(): Plugin {
   const routes: Record<string, string> = {
     '/works': '/api/works.ts',
     '/work': '/api/work.ts',
+    '/cite': '/api/cite.ts',
   }
   return {
     name: 'local-api',

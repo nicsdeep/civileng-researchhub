@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { useWork } from '../features/search/hooks'
 import { ApiError } from '../lib/api'
 import { doiUrl, formatCount, typeLabel } from '../lib/format'
 import { usePageTitle } from '../lib/usePageTitle'
 import { StatusMessage } from '../components/ui/StatusMessage'
+import { SaveButton } from '../components/research/SaveButton'
+import { CiteButton } from '../components/research/CiteButton'
+import { toQueryString } from '../lib/searchParams'
 
 export function PublicationPage() {
   const { id = '' } = useParams()
@@ -62,17 +65,29 @@ export function PublicationPage() {
       {back}
 
       <header className="mt-4 max-w-3xl">
-        {work.isOpenAccess && <p className="text-xs font-semibold tracking-wide text-oa uppercase">Open access</p>}
-        <h1 className="mt-1 font-serif text-2xl leading-snug sm:text-3xl">{work.title}</h1>
-        <p className="mt-3 text-muted">
+        {work.isOpenAccess && <p className="text-xs font-semibold tracking-wide text-oa uppercase">Free full text available</p>}
+        <h1 className="display mt-1 text-3xl leading-tight sm:text-4xl">{work.title}</h1>
+        <p className="mt-3 text-byline">
           {work.authors.map((a) => a.name).join(', ')}
           {work.authorCount > work.authors.length && `, and ${work.authorCount - work.authors.length} more`}
         </p>
+        <div className="mt-5 flex flex-wrap items-center gap-2">
+          {work.openAccessUrl && (
+            <a href={work.openAccessUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">Read full text ↗</a>
+          )}
+          <SaveButton work={work} variant="button" />
+          <CiteButton doi={work.doi} title={work.title} variant="button" />
+          {work.citedBy > 0 && (
+            <Link to={`/explore?${toQueryString({ cites: work.id })}`} className="btn-secondary">
+              Cited by {formatCount(work.citedBy)}
+            </Link>
+          )}
+        </div>
       </header>
 
       <div className="mt-8 grid gap-10 md:grid-cols-[1fr_16rem]">
         <section aria-labelledby="abstract" className="max-w-prose">
-          <h2 id="abstract" className="font-serif text-xl">Abstract</h2>
+          <h2 id="abstract" className="display text-2xl">Abstract</h2>
           {work.abstract ? (
             <p className="mt-3 leading-7">{work.abstract}</p>
           ) : (
@@ -80,25 +95,20 @@ export function PublicationPage() {
           )}
         </section>
 
-        <aside className="space-y-8">
+        <aside className="panel h-fit space-y-6 p-5">
           <section aria-labelledby="access">
             <h2 id="access" className="label">Access</h2>
             <ul className="space-y-2 text-sm">
               {work.openAccessUrl && (
                 <li>
                   <a href={work.openAccessUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-oa hover:underline">
-                    Read open-access version ↗
+                    Free full text ↗
                   </a>
                 </li>
               )}
               {work.landingUrl && (
                 <li><a href={work.landingUrl} target="_blank" rel="noopener noreferrer" className="link">Publisher page ↗</a></li>
               )}
-              <li>
-                <a href={`https://openalex.org/works/${work.id}`} target="_blank" rel="noopener noreferrer" className="link">
-                  OpenAlex record ↗
-                </a>
-              </li>
             </ul>
             {!work.openAccessUrl && (
               <p className="mt-2 text-xs text-muted">No free full text is known. Your university library may provide access.</p>

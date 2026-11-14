@@ -43,6 +43,8 @@ export interface WorkSearchParams {
   to: string
   type: string
   oa: boolean
+  /** Show works that cite this OpenAlex work id ("Cited by"). */
+  cites: string
   sort: SortOption
   page: number
 }
