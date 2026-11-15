@@ -7,12 +7,18 @@
 # Needs two repository secrets (Settings → Secrets and variables → Actions):
 #   SUPABASE_ACCESS_TOKEN  personal token from https://supabase.com/dashboard/account/tokens
 #   SUPABASE_DB_PASSWORD   optional: the database password (otherwise a temporary login role is used)
+#
+# The project is shared with CivilEng Portfolio, which keeps its own
+# migrations (pf_*) in its own repository. Both write to the same migration
+# history, so before pushing, this workflow adds empty placeholder files for
+# versions that exist only on the database. They are already applied there, so
+# `db push` skips them instead of refusing to run.
 name: Supabase migrations
 
 on:
   push:
     branches: [main]
-    paths: ['supabase/migrations/**', 'supabase/config.toml']
+    paths: ['supabase/migrations/**', 'supabase/config.toml', '.github/workflows/supabase-migrations.yml']
   workflow_dispatch:
 
 concurrency:
@@ -50,10 +56,25 @@ jobs:
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
           supabase link --project-ref "$PROJECT_REF"
 
-      - name: Apply new migrations
+      - name: Add placeholders for migrations applied by other CivilEng apps
         run: |
           [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
-          supabase db push --linked
+          supabase migration list --linked | tee migrations.txt
+          # Rows with an empty "Local" column and a version in "Remote".
+          # The CLI wraps values in backticks, e.g. "` `" for an empty cell.
+          awk -F'|' '{ l=$1; r=$2; gsub(/[ \t`]/, "", l); gsub(/[ \t`]/, "", r); if (l == "" && r ~ /^[0-9]+$/) print r }' migrations.txt |
+            while read -r version; do
+              echo "Remote-only migration $version (another CivilEng app): adding a placeholder"
+              echo "-- Applied by another CivilEng app; placeholder so db push accepts the shared history." \
+                > "supabase/migrations/${version}_applied_elsewhere.sql"
+            done
+
+      - name: Apply new migrations
+        # --include-all: a new ResearchHub migration may be older than one
+        # CivilEng Portfolio has applied since; it still needs to run.
+        run: |
+          [ -n "$SUPABASE_DB_PASSWORD" ] || unset SUPABASE_DB_PASSWORD
+          supabase db push --linked --include-all
 
       - name: Apply auth settings (site URL, password rules, email confirmation)
         # The diff printed above is the change being approved; config.toml is reviewed in Git.
