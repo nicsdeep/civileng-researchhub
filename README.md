@@ -11,8 +11,8 @@ never hosts or proxies PDFs; it links to publishers and open-access repositories
 
 Features: researcher search and profiles (affiliation, ORCID, h-index, citations per year,
 publications), discipline rankings with a Canadian-institutions filter; Scholar-style search with time, sort, discipline and type filters; "Cited by"
-navigation; Cite in APA, MLA, Chicago, Harvard, IEEE and BibTeX; accounts with email
-confirmation; a personal library with collections.
+navigation; Cite in APA, MLA, Chicago, Harvard, IEEE and BibTeX; passwordless accounts
+(email sign-in link); a personal library with collections.
 
 ## Status
 
@@ -118,8 +118,10 @@ set automatically from the login session. Publications themselves are never stor
 
 ### Auth settings
 
-`supabase/config.toml` sets the site URL (so confirmation and reset emails link to the live
-site), password rules (8+ characters, letters and digits) and email confirmation. The
+`supabase/config.toml` sets the site URL and redirect URLs (so sign-in emails link to the live
+sites). Sign-in is passwordless: the app only ever sends an email link (`signInWithOtp`), which
+also creates the account on first use. The password rules in the config only matter if a
+password flow is ever added back. The
 workflow below applies it with `supabase config push`.
 
 ### Migrations run automatically

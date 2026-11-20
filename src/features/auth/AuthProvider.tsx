@@ -8,14 +8,12 @@ interface AuthState {
   session: Session | null
   /** True until the stored session has been checked. */
   loading: boolean
-  /** Set when the visitor arrived from a password-reset email. */
-  recovering: boolean
 }
 
-const AuthContext = createContext<AuthState>({ user: null, session: null, loading: true, recovering: false })
+const AuthContext = createContext<AuthState>({ user: null, session: null, loading: true })
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<AuthState>({ user: null, session: null, loading: true, recovering: false })
+  const [state, setState] = useState<AuthState>({ user: null, session: null, loading: true })
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -23,12 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, session: data.session, user: data.session?.user ?? null, loading: false }))
     })
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      setState((s) => ({
-        session,
-        user: session?.user ?? null,
-        loading: false,
-        recovering: event === 'PASSWORD_RECOVERY' ? true : event === 'SIGNED_OUT' ? false : s.recovering,
-      }))
+      setState({ session, user: session?.user ?? null, loading: false })
       // Never show one person's library to the next person on this device.
       if (event === 'SIGNED_OUT') queryClient.removeQueries({ queryKey: ['library'] })
     })

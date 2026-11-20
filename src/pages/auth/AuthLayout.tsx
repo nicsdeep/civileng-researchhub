@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-/** Centred card used by the sign-in, sign-up and password pages. */
+/** Centred card used by the sign-in pages. */
 export function AuthLayout({ title, accent, intro, children }: { title: string; accent?: string; intro?: ReactNode; children: ReactNode }) {
   return (
     <div className="container-page flex justify-center py-12 sm:py-16">

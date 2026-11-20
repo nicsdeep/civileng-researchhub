@@ -13,13 +13,10 @@ export const supabase = createClient(url, key, {
 /** Turns Supabase auth errors into plain, actionable messages. */
 export function authMessage(error: { message?: string; code?: string } | null): string {
   const text = error?.message ?? ''
-  if (/invalid login credentials/i.test(text)) return 'Email or password is incorrect.'
-  if (/email not confirmed/i.test(text)) return 'Please confirm your email first. Check your inbox for the link we sent.'
-  if (/rate limit|too many/i.test(text)) return 'Too many attempts. Please wait a minute and try again.'
-  if (/password should|weak password|password.*characters/i.test(text))
-    return 'Choose a password of at least 8 characters with both letters and numbers.'
-  if (/same.*password|different from the old/i.test(text)) return 'Choose a password different from your current one.'
-  if (/user already registered/i.test(text)) return 'An account with this email already exists. Try signing in.'
+  if (/rate limit|too many|security purposes/i.test(text)) return 'Too many sign-in emails were sent. Please wait a few minutes and try again.'
+  if (/invalid.*email|unable to validate email/i.test(text)) return 'Please enter a valid email address.'
+  if (/signups? not allowed/i.test(text)) return 'New accounts are switched off at the moment.'
+  if (/expired|invalid.*(link|token)/i.test(text)) return 'That sign-in link has expired or was already used. Request a new one.'
   if (/fetch|network/i.test(text)) return 'Could not reach the server. Check your connection and try again.'
   return text || 'Something went wrong. Please try again.'
 }

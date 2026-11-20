@@ -42,7 +42,6 @@ function MobileMenuAccount({ navClass }: { navClass: (s: { isActive: boolean }) 
   return (
     <>
       <NavLink to="/sign-in" className={(s) => `${navClass(s)} py-2 text-base`}>Sign in</NavLink>
-      <NavLink to="/sign-up" className={(s) => `${navClass(s)} py-2 text-base`}>Create account</NavLink>
     </>
   )
 }
